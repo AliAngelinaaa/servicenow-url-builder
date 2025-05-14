@@ -25,24 +25,28 @@ function addFilter() {
   document.getElementById("urlForm").addEventListener("submit", async function (e) {
     e.preventDefault();
     const form = new FormData(this);
-    const filters = [];
   
+    // Auto-generate full domain
+    const orgName = form.get("orgName").trim();
+    form.delete("orgName");
+    form.append("domain", `${orgName}.service-now.com`);
+  
+    // Compile filters
+    const filters = [];
     const fields = form.getAll("filter_field[]");
     const ops = form.getAll("filter_op[]");
     const values = form.getAll("filter_value[]");
-  
     for (let i = 0; i < fields.length; i++) {
       if (fields[i] && ops[i] && values[i]) {
         filters.push(`${fields[i]}${ops[i]}${values[i]}`);
       }
     }
-  
     form.delete("filter_field[]");
     form.delete("filter_op[]");
     form.delete("filter_value[]");
-  
     filters.forEach(f => form.append("filters[]", f));
   
+    // Send to backend
     const response = await fetch("/generate", {
       method: "POST",
       body: form
